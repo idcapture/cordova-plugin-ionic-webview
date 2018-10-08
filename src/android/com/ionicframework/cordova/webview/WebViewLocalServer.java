@@ -236,7 +236,7 @@ public class WebViewLocalServer {
 
   private WebResourceResponse handleLocalRequest(Uri uri, PathHandler handler) {
     String path = uri.getPath();
-    if (path.equals("/") || (!uri.getLastPathSegment().contains(".") && html5mode)) {
+    if (path.equals("/")) {
       InputStream stream;
       String launchURL = parser.getLaunchUrl();
       String launchFile = launchURL.substring(launchURL.lastIndexOf("/") + 1, launchURL.length());
@@ -257,20 +257,13 @@ public class WebViewLocalServer {
                 handler.getStatusCode(), handler.getReasonPhrase(), handler.getResponseHeaders(), stream);
     }
 
-    int periodIndex = path.lastIndexOf(".");
-    if (periodIndex >= 0) {
-      String ext = path.substring(path.lastIndexOf("."), path.length());
+    InputStream responseStream = new LollipopLazyInputStream(handler, uri);
+    InputStream stream = responseStream;
 
-      InputStream responseStream = new LollipopLazyInputStream(handler, uri);
-      InputStream stream = responseStream;
+    String mimeType = getMimeType(path, stream);
 
-      String mimeType = getMimeType(path, stream);
-
-      return createWebResourceResponse(mimeType, handler.getEncoding(),
-              handler.getStatusCode(), handler.getReasonPhrase(), handler.getResponseHeaders(), stream);
-    }
-
-    return null;
+    return createWebResourceResponse(mimeType, handler.getEncoding(),
+            handler.getStatusCode(), handler.getReasonPhrase(), handler.getResponseHeaders(), stream);
   }
 
   /**
